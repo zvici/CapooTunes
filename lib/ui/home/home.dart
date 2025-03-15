@@ -98,12 +98,14 @@ class _HomeTabPageState extends State<HomeTabState> {
         backgroundColor: Color(0xFF343434),
         leading: Padding(
           padding: EdgeInsets.only(left: 10),
-          child: Text(
-            'Home',
-            style: TextStyle(
-              color: AppColors.textColor,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+          child: Scaffold(
+            body: Text(
+              'Home',
+              style: TextStyle(
+                color: AppColors.textColor,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),

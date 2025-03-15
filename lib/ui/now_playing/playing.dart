@@ -1,4 +1,5 @@
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:capoo_tunes/constants/repeat_mode.dart';
 import 'package:capoo_tunes/data/model/song.dart';
 import 'package:capoo_tunes/ui/now_playing/audio_play_manager.dart';
 import 'package:capoo_tunes/ui/now_playing/media_button_control.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:marquee/marquee.dart';
 
 class NowPlaying extends StatelessWidget {
   const NowPlaying({super.key, required this.songs, required this.playingSong});
@@ -36,16 +38,37 @@ class _NowPlayingPageState extends State<NowPlayingPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _imageAnimationController;
   late AudioPlayManager _audioPlayManager;
+  late int _selectedItemIndex;
+  late Song _song;
+  late bool _isShuffle;
+  RepeatMode _repeatMode = RepeatMode.noRepeat;
+
+  void _watchCurrentSong() {
+    _audioPlayManager.player.playerStateStream.listen((playerState) {
+      if (playerState.processingState == ProcessingState.completed) {
+        if (_repeatMode == RepeatMode.repeatOne) {
+          _audioPlayManager.player.seek(Duration.zero);
+          _audioPlayManager.player.play();
+          return;
+        }
+        _setNextSong();
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    _song = widget.playingSong;
     _imageAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 20),
     )..repeat();
-    _audioPlayManager = AudioPlayManager(songUrl: widget.playingSong.source);
+    _audioPlayManager = AudioPlayManager(songUrl: _song.source);
     _audioPlayManager.init();
+    _selectedItemIndex = widget.songs.indexOf(widget.playingSong);
+    _watchCurrentSong();
+    _isShuffle = false;
   }
 
   @override
@@ -101,7 +124,7 @@ class _NowPlayingPageState extends State<NowPlayingPage>
                       children: [
                         FadeInImage.assetNetwork(
                           placeholder: 'assets/images/music-icon.png',
-                          image: widget.playingSong.image,
+                          image: _song.image,
                           width: screenWidth - delta,
                           height: screenWidth - delta,
                           fit: BoxFit.cover,
@@ -140,26 +163,44 @@ class _NowPlayingPageState extends State<NowPlayingPage>
                         size: 24,
                       ),
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          widget.playingSong.title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textColor,
-                            fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 20,
+                            child: Marquee(
+                              text: _song.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: AppColors.textColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              scrollAxis: Axis.horizontal,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              blankSpace: 50.0,
+                              velocity: 30.0,
+                              pauseAfterRound: Duration(seconds: 1),
+                              startPadding: 10.0,
+                              accelerationDuration: Duration(seconds: 1),
+                              accelerationCurve: Curves.linear,
+                              decelerationDuration: Duration(milliseconds: 500),
+                              decelerationCurve: Curves.easeOut,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.playingSong.artist,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textColor,
+                          const SizedBox(height: 4),
+                          Text(
+                            _song.artist,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textColor,
+                            ),
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            textAlign: TextAlign.right,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     IconButton(
                       onPressed: () {},
@@ -193,30 +234,25 @@ class _NowPlayingPageState extends State<NowPlayingPage>
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           MediaButtonControl(
-            function: () {},
+            function: _setShuffle,
             icon: FontAwesomeIcons.shuffle,
-            color: AppColors.textColor,
+            color: AppColors.textColor.withValues(alpha: _isShuffle ? 1 : 0.3),
             size: 20,
           ),
           MediaButtonControl(
-            function: () {},
+            function: _setPrevSong,
             icon: FontAwesomeIcons.backwardStep,
             color: AppColors.textColor,
             size: 32,
           ),
           _buildPlayButton(),
           MediaButtonControl(
-            function: () {},
+            function: _setNextSong,
             icon: FontAwesomeIcons.forwardStep,
             color: AppColors.textColor,
             size: 32,
           ),
-          MediaButtonControl(
-            function: () {},
-            icon: FontAwesomeIcons.repeat,
-            color: AppColors.textColor,
-            size: 20,
-          ),
+          _buildRepeatButton(),
         ],
       ),
     );
@@ -297,5 +333,92 @@ class _NowPlayingPageState extends State<NowPlayingPage>
         }
       },
     );
+  }
+
+  Widget _buildRepeatButton() {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        MediaButtonControl(
+          function: _setRepeatMode,
+          icon: FontAwesomeIcons.repeat,
+          color: AppColors.textColor.withValues(
+            alpha: _repeatMode != RepeatMode.noRepeat ? 1 : 0.3,
+          ),
+          size: 20,
+        ),
+        if (_repeatMode == RepeatMode.repeatOne)
+          Positioned(
+            top: 20,
+            right: 22,
+            child: Text(
+              '1',
+              style: TextStyle(
+                fontSize: 7,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _setNextSong() {
+    if (_selectedItemIndex == widget.songs.length - 1) {
+      _selectedItemIndex = 0;
+    } else {
+      ++_selectedItemIndex;
+    }
+    final nextSong = widget.songs[_selectedItemIndex];
+    _audioPlayManager.updateSongUrl(nextSong.source);
+    setState(() {
+      _song = nextSong;
+    });
+  }
+
+  void _setPrevSong() {
+    // If the song is playing for more than 5 seconds, it will restart the song
+    if (_audioPlayManager.player.position.inSeconds > 5) {
+      _audioPlayManager.player.seek(Duration.zero);
+      return;
+    }
+    if (_selectedItemIndex == 0) {
+      _selectedItemIndex = widget.songs.length - 1;
+    } else {
+      --_selectedItemIndex;
+    }
+    final prevSong = widget.songs[_selectedItemIndex];
+    _audioPlayManager.updateSongUrl(prevSong.source);
+    setState(() {
+      _song = prevSong;
+    });
+  }
+
+  void _setShuffle() {
+    setState(() {
+      _isShuffle = !_isShuffle;
+    });
+  }
+
+  void _setRepeatMode() {
+    switch (_repeatMode) {
+      case RepeatMode.noRepeat:
+        setState(() {
+          _repeatMode = RepeatMode.repeatOne;
+        });
+        break;
+      case RepeatMode.repeatOne:
+        setState(() {
+          _repeatMode = RepeatMode.repeatList;
+        });
+        break;
+      case RepeatMode.repeatList:
+        setState(() {
+          _repeatMode = RepeatMode.noRepeat;
+        });
+        break;
+    }
   }
 }

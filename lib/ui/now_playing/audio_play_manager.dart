@@ -22,6 +22,11 @@ class AudioPlayManager {
     player.play();
   }
 
+  void updateSongUrl(String url) {
+    songUrl = url;
+    init();
+  }
+
   void dispose() {
     player.dispose();
   }
