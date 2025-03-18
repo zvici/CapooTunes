@@ -17,6 +17,7 @@ dependencies:
   audio_video_progress_bar: ^2.0.3
   marquee: ^2.3.0
   flutter_launcher_icons: ^0.14.3
+  palette_generator: ^0.3.3+6
 
 dev_dependencies:
   flutter_test:

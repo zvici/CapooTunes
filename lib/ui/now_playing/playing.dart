@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:marquee/marquee.dart';
+import 'package:palette_generator/palette_generator.dart';
 
 class NowPlaying extends StatelessWidget {
   const NowPlaying({super.key, required this.songs, required this.playingSong});
@@ -42,9 +43,12 @@ class _NowPlayingPageState extends State<NowPlayingPage>
   late Song _song;
   late bool _isShuffle;
   RepeatMode _repeatMode = RepeatMode.noRepeat;
+  Color _dominantColor = AppColors.background;
 
   void _watchCurrentSong() {
     _audioPlayManager.player.playerStateStream.listen((playerState) {
+      _getDominantColor();
+
       if (playerState.processingState == ProcessingState.completed) {
         if (_repeatMode == RepeatMode.repeatOne) {
           _audioPlayManager.player.seek(Duration.zero);
@@ -53,6 +57,18 @@ class _NowPlayingPageState extends State<NowPlayingPage>
         }
         _setNextSong();
       }
+    });
+  }
+
+  Future<void> _getDominantColor() async {
+    final paletteGenerator = await PaletteGenerator.fromImageProvider(
+      NetworkImage(_song.image),
+    );
+    Color selectedColor =
+        paletteGenerator.dominantColor?.color ?? AppColors.background;
+
+    setState(() {
+      _dominantColor = selectedColor.withValues(alpha: 0.6);
     });
   }
 
@@ -83,146 +99,147 @@ class _NowPlayingPageState extends State<NowPlayingPage>
     final screenWidth = MediaQuery.of(context).size.width;
     const delta = 64;
 
-    return CupertinoPageScaffold(
-      backgroundColor: AppColors.background,
-      navigationBar: CupertinoNavigationBar(
-        middle: Text(
-          'Now Playing',
-          style: TextStyle(color: AppColors.textColor),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: _dominantColor,
+        elevation: 1,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textColor),
         ),
-        trailing: IconButton(
-          onPressed: () {},
-          icon: const Icon(
-            Icons.more_vert,
+        title: const Text(
+          'Now Playing',
+          style: TextStyle(
             color: AppColors.textColor,
-            size: 24,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
       ),
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 48),
-              RotationTransition(
-                turns: Tween(
-                  begin: 0.0,
-                  end: 1.0,
-                ).animate(_imageAnimationController),
-                child: Container(
-                  width: screenWidth - delta,
-                  height: screenWidth - delta,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade300, width: 2),
-                  ),
-                  child: ClipOval(
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        FadeInImage.assetNetwork(
-                          placeholder: 'assets/images/music-icon.png',
-                          image: _song.image,
-                          width: screenWidth - delta,
-                          height: screenWidth - delta,
-                          fit: BoxFit.cover,
-                          imageErrorBuilder:
-                              (context, error, stackTrace) => Image.asset(
-                                'assets/images/music-icon.png',
-                                width: screenWidth - delta,
-                                height: screenWidth - delta,
-                                fit: BoxFit.cover,
-                              ),
+      backgroundColor: _dominantColor,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            RotationTransition(
+              turns: Tween(
+                begin: 0.0,
+                end: 1.0,
+              ).animate(_imageAnimationController),
+              child: Container(
+                width: screenWidth - delta,
+                height: screenWidth - delta,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.grey.shade300, width: 2),
+                ),
+                child: ClipOval(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      FadeInImage.assetNetwork(
+                        placeholder: 'assets/images/music-icon.png',
+                        image: _song.image,
+                        width: screenWidth - delta,
+                        height: screenWidth - delta,
+                        fit: BoxFit.cover,
+                        imageErrorBuilder:
+                            (context, error, stackTrace) => Image.asset(
+                              'assets/images/music-icon.png',
+                              width: screenWidth - delta,
+                              height: screenWidth - delta,
+                              fit: BoxFit.cover,
+                            ),
+                      ),
+                      Container(
+                        width: (screenWidth - delta) * 0.2,
+                        height: (screenWidth - delta) * 0.2,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.background,
+                          border: Border.all(color: Colors.white, width: 2),
                         ),
-                        Container(
-                          width: (screenWidth - delta) * 0.2,
-                          height: (screenWidth - delta) * 0.2,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.background,
-                            border: Border.all(color: Colors.white, width: 2),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 32, left: 28, right: 28),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.share,
+                      color: AppColors.textColor,
+                      size: 24,
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 20,
+                          child: Marquee(
+                            text: _song.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: AppColors.textColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            scrollAxis: Axis.horizontal,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            blankSpace: 50.0,
+                            velocity: 30.0,
+                            pauseAfterRound: Duration(seconds: 1),
+                            startPadding: 10.0,
+                            accelerationDuration: Duration(seconds: 1),
+                            accelerationCurve: Curves.linear,
+                            decelerationDuration: Duration(milliseconds: 500),
+                            decelerationCurve: Curves.easeOut,
                           ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _song.artist,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textColor,
+                          ),
+                          overflow: TextOverflow.fade,
+                          softWrap: false,
+                          textAlign: TextAlign.right,
                         ),
                       ],
                     ),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20, left: 28, right: 28),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.share,
-                        color: AppColors.textColor,
-                        size: 24,
-                      ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.favorite_border,
+                      color: AppColors.textColor,
+                      size: 24,
                     ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            child: Marquee(
-                              text: _song.title,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: AppColors.textColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              scrollAxis: Axis.horizontal,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              blankSpace: 50.0,
-                              velocity: 30.0,
-                              pauseAfterRound: Duration(seconds: 1),
-                              startPadding: 10.0,
-                              accelerationDuration: Duration(seconds: 1),
-                              accelerationCurve: Curves.linear,
-                              decelerationDuration: Duration(milliseconds: 500),
-                              decelerationCurve: Curves.easeOut,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _song.artist,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textColor,
-                            ),
-                            overflow: TextOverflow.fade,
-                            softWrap: false,
-                            textAlign: TextAlign.right,
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.favorite_border,
-                        color: AppColors.textColor,
-                        size: 24,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 32, left: 28, right: 28),
-                child: _buildProgressBar(),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10, left: 28, right: 28),
-                child: _buildMediaButton(),
-              ),
-            ],
-          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 58, left: 28, right: 28),
+              child: _buildProgressBar(),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 10, left: 28, right: 28),
+              child: _buildMediaButton(),
+            ),
+          ],
         ),
       ),
     );
