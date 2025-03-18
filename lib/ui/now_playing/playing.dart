@@ -296,8 +296,8 @@ class _NowPlayingPageState extends State<NowPlayingPage>
             processingState == ProcessingState.buffering) {
           return Container(
             margin: EdgeInsets.all(8),
-            width: 64,
-            height: 64,
+            width: 50,
+            height: 50,
             child: const CircularProgressIndicator(),
           );
         } else if (playing != true) {

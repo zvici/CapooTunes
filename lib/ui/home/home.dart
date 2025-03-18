@@ -6,6 +6,7 @@ import 'package:capoo_tunes/ui/settings/settings.dart';
 import 'package:capoo_tunes/ui/user/user.dart';
 import 'package:capoo_tunes/utils/app_colors.dart';
 import 'package:capoo_tunes/utils/time_utils.dart';
+import 'package:capoo_tunes/widgets/custom_nav_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -18,6 +19,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
   final List<Widget> _tabs = [
     HomeTab(),
     DiscoveryTab(),
@@ -25,39 +28,21 @@ class _HomeScreenState extends State<HomeScreen> {
     SettingsTab(),
   ];
 
+  void _onTabSelected(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      backgroundColor: AppColors.background,
-      child: CupertinoTabScaffold(
-        tabBar: CupertinoTabBar(
-          backgroundColor: Color(0xFF343434),
-          activeColor: AppColors.primary,
-          inactiveColor: Color(0xFF737373),
-          onTap: (index) {},
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(FontAwesomeIcons.house, size: 20),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(FontAwesomeIcons.compactDisc, size: 20),
-              label: 'Discovery',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person, size: 30),
-              label: 'User',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(FontAwesomeIcons.gear, size: 20),
-              label: 'Settings',
-            ),
-          ],
-        ),
-        tabBuilder: (BuildContext context, int index) {
-          return _tabs[index];
-        },
+    return Scaffold(
+      body: _tabs[_currentIndex],
+      bottomNavigationBar: CustomNavBar(
+        currentIndex: _currentIndex,
+        onTap: _onTabSelected,
       ),
+      extendBody: true,
     );
   }
 }
