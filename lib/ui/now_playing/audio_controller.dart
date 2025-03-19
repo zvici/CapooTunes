@@ -13,6 +13,7 @@ class AudioController extends GetxController {
   Rxn<Song> currentSong = Rxn<Song>();
   Rxn<DurationState> durationState = Rxn<DurationState>();
   Rxn<Color> dominantColor = Rxn<Color>();
+  var isPlaying = false.obs;
 
   @override
   void onInit() {
@@ -32,6 +33,9 @@ class AudioController extends GetxController {
     ).listen((state) {
       durationState.value = state;
     });
+    player.playerStateStream.listen((state) {
+      isPlaying.value = state.playing;
+    });
   }
 
   Future<void> playSong(Song song) async {
@@ -44,6 +48,10 @@ class AudioController extends GetxController {
 
   void pauseSong() {
     player.pause();
+  }
+
+  void resumeSong() {
+    player.play();
   }
 
   void stopSong() {

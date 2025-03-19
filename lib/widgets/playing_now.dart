@@ -50,6 +50,7 @@ class PlayingNow extends StatelessWidget {
                     text: song.title,
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     blankSpace: MediaQuery.of(context).size.width - 180,
+                    
                   ),
                 ),
                 Text(
@@ -61,14 +62,14 @@ class PlayingNow extends StatelessWidget {
             Spacer(),
             IconButton(
               onPressed: () {
-                if (controller.player.playing) {
+                if (controller.isPlaying.value) {
                   controller.pauseSong();
                 } else {
-                  controller.playSong(song);
+                  controller.resumeSong();
                 }
               },
               icon: Icon(
-                controller.player.playing
+                controller.isPlaying.value
                     ? FontAwesomeIcons.pause
                     : FontAwesomeIcons.play,
               ),
