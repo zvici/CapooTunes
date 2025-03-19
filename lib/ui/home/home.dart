@@ -1,6 +1,7 @@
 import 'package:capoo_tunes/data/model/song.dart';
 import 'package:capoo_tunes/ui/discovery/discovery.dart';
 import 'package:capoo_tunes/ui/home/viewmodel.dart';
+import 'package:capoo_tunes/ui/now_playing/audio_controller.dart';
 import 'package:capoo_tunes/ui/now_playing/playing.dart';
 import 'package:capoo_tunes/ui/settings/settings.dart';
 import 'package:capoo_tunes/ui/user/user.dart';
@@ -9,7 +10,7 @@ import 'package:capoo_tunes/utils/time_utils.dart';
 import 'package:capoo_tunes/widgets/custom_nav_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:get/get.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -66,6 +67,7 @@ class HomeTabState extends StatefulWidget {
 class _HomeTabPageState extends State<HomeTabState> {
   List<Song> songs = [];
   late MusicAppViewModel _viewModel = MusicAppViewModel();
+  final AudioController controller = Get.put(AudioController());
 
   @override
   void initState() {
@@ -180,6 +182,10 @@ class _HomeTabPageState extends State<HomeTabState> {
       ),
     );
   }
+
+  void playSong(Song song) {
+    controller.playSong(song);
+  }
 }
 
 class _SongItemSection extends StatelessWidget {
@@ -249,7 +255,7 @@ class _SongItemSection extends StatelessWidget {
           ],
         ),
       ),
-      onTap: () => {parent.navigate(song)},
+      onTap: () => {parent.playSong(song)},
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:capoo_tunes/utils/app_colors.dart';
+import 'package:capoo_tunes/widgets/playing_now.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:marquee/marquee.dart';
 
 class CustomNavBar extends StatefulWidget {
   final int currentIndex;
@@ -27,7 +27,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isPlaying) _buildPlayingNow(),
+          if (isPlaying) PlayingNow(),
           Container(
             color: AppColors.secondaryBackground,
             child: SafeArea(
@@ -83,47 +83,6 @@ class _CustomNavBarState extends State<CustomNavBar> {
                     : AppColors.grey,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPlayingNow() {
-    return Container(
-      padding: EdgeInsets.all(10),
-      height: 60,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Color(0xFF550A1C),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(5),
-            child: Container(height: 40, width: 40, color: Colors.red),
-          ),
-          SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 20,
-                width: MediaQuery.of(context).size.width - 180,
-                child: Marquee(
-                  text: "This is the demo song title",
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  blankSpace: MediaQuery.of(context).size.width - 180,
-                ),
-              ),
-              Text(
-                "Artist Name",
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ],
-          ),
-          Spacer(),
-          IconButton(onPressed: () {}, icon: Icon(FontAwesomeIcons.play)),
-          IconButton(onPressed: () {}, icon: Icon(FontAwesomeIcons.forward)),
-        ],
       ),
     );
   }
