@@ -1,8 +1,8 @@
 import 'package:capoo_tunes/data/model/song.dart';
 import 'package:capoo_tunes/ui/discovery/discovery.dart';
+import 'package:capoo_tunes/ui/home/song_card.dart';
 import 'package:capoo_tunes/ui/home/viewmodel.dart';
 import 'package:capoo_tunes/ui/now_playing/audio_controller.dart';
-import 'package:capoo_tunes/ui/now_playing/playing.dart';
 import 'package:capoo_tunes/ui/settings/settings.dart';
 import 'package:capoo_tunes/ui/user/user.dart';
 import 'package:capoo_tunes/utils/app_colors.dart';
@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _tabs[_currentIndex],
+      body: IndexedStack(index: _currentIndex, children: _tabs),
       bottomNavigationBar: CustomNavBar(
         currentIndex: _currentIndex,
         onTap: _onTabSelected,
@@ -79,25 +79,9 @@ class _HomeTabPageState extends State<HomeTabState> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        automaticBackgroundVisibility: true,
-        backgroundColor: Color(0xFF343434),
-        leading: Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Scaffold(
-            body: Text(
-              'Home',
-              style: TextStyle(
-                color: AppColors.textColor,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      ),
-      child: Scaffold(body: buildBody(), backgroundColor: Color(0xFF1C1B1B)),
+    return Scaffold(
+      body: SafeArea(child: buildBody()),
+      backgroundColor: Color(0xFF1C1B1B),
     );
   }
 
@@ -120,11 +104,57 @@ class _HomeTabPageState extends State<HomeTabState> {
   }
 
   Widget buildListView() {
-    return ListView.builder(
-      itemCount: songs.length,
-      itemBuilder: (context, index) {
-        return buildRow(index);
-      },
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20, top: 10, bottom: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'News',
+                  style: TextStyle(
+                    color: AppColors.textColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 17),
+                SizedBox(
+                  height: 250,
+                  child: ListView.builder(
+                    itemCount: songs.length,
+                    scrollDirection: Axis.horizontal,
+                    itemBuilder: (context, index) {
+                      return SongCard(song: songs[index], onTap: playSong);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20, top: 20, bottom: 10),
+            child: Text(
+              'Playlist',
+              style: TextStyle(
+                color: AppColors.textColor,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => buildRow(index),
+            childCount: songs.length,
+          ),
+        ),
+      ],
     );
   }
 
@@ -171,15 +201,6 @@ class _HomeTabPageState extends State<HomeTabState> {
           ),
         );
       },
-    );
-  }
-
-  void navigate(Song song) {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => NowPlaying(songs: songs, playingSong: song),
-      ),
     );
   }
 

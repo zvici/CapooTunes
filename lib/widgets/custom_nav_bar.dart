@@ -37,7 +37,7 @@ class _CustomNavBarState extends State<CustomNavBar> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildNavItem(FontAwesomeIcons.house, "Home", 0),
-                      _buildNavItem(FontAwesomeIcons.solidCompass, "Search", 1),
+                      _buildNavItem(FontAwesomeIcons.magnifyingGlass, "Search", 1),
                       _buildNavItem(FontAwesomeIcons.solidHeart, "Profile", 2),
                       _buildNavItem(FontAwesomeIcons.solidUser, "Settings", 3),
                     ],
